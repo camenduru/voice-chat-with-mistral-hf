@@ -9,6 +9,9 @@ import nltk  # we'll use this to split into sentences
 import uuid
 
 from TTS.api import TTS
+# By using XTTS you agree to CPML license https://coqui.ai/cpml
+os.environ["COQUI_TOS_AGREED"] = "1"
+
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
 
 DESCRIPTION = """# Speak with Llama2
