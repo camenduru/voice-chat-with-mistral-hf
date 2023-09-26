@@ -6,6 +6,7 @@ import gradio as gr
 import numpy as np
 import torch
 import nltk  # we'll use this to split into sentences
+nltk.download('punkt')
 import uuid
 
 from TTS.api import TTS
