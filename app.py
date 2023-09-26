@@ -5,7 +5,6 @@ import os
 import gradio as gr
 import numpy as np
 import torch
-import torchaudio
 
 DESCRIPTION = """# Speak with Llama2
 TODO
