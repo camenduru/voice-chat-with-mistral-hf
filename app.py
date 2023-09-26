@@ -7,7 +7,6 @@ import numpy as np
 import torch
 import nltk  # we'll use this to split into sentences
 import uuid
-import soundfile as SF
 
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
