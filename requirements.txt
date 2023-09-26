@@ -2,3 +2,4 @@ torch
 nltk
 transformers
 gradio_client
+TTS
