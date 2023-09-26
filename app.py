@@ -5,15 +5,24 @@ import os
 import gradio as gr
 import numpy as np
 import torch
+import nltk  # we'll use this to split into sentences
+import uuid
+import soundfile as SF
+
+from TTS.api import TTS
+tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
 
 DESCRIPTION = """# Speak with Llama2
 TODO
 """
 
+CACHE_EXAMPLES = os.getenv("CACHE_EXAMPLES") == "1"
+
 system_message = "\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
 temperature = 0.9
 top_p = 0.6
 repetition_penalty = 1.2
+
 
 import gradio as gr
 import os
@@ -56,9 +65,8 @@ def add_file(history, file):
 
 def bot(history):
 
-   
     history[-1][1] = ""
-    for character in text_client.predict(
+    for character in text_client.submit(
                     history,
                     system_message,
                     temperature,
@@ -67,9 +75,30 @@ def bot(history):
                     repetition_penalty,
                     api_name="/chat"
     ):
-        history[-1][1] += character
+        history[-1][1] = character
         yield history
 
+def generate_speech(history):
+    text_to_generate = history[-1][1]
+    text_to_generate = text_to_generate.replace("\n", " ").strip()
+    text_to_generate = nltk.sent_tokenize(text_to_generate)
+    
+    filename = f"{uuid.uuid4()}.wav"
+    sampling_rate = tts.synthesizer.tts_config.audio["sample_rate"]
+    silence = [0] * int(0.25 * sampling_rate)
+
+    
+    for sentence in text_to_generate:
+        # generate speech by cloning a voice using default settings
+        wav = tts.tts(text=sentence,
+                    #speaker_wav="/home/yoach/spaces/talkWithLLMs/examples/female.wav",
+                      speed=1.5,
+                    language="en")
+        
+        yield (sampling_rate, np.array(wav)) #np.array(wav + silence))
+        
+    
+    
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
@@ -87,15 +116,19 @@ with gr.Blocks() as demo:
             container=False,
         )
         btn = gr.inputs.Audio(source="microphone", type="filepath", optional=True)
+        
+    with gr.Row():
+        audio = gr.Audio(type="numpy", streaming=True, autoplay=True)
 
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
-    )
+    ).then(generate_speech, chatbot, audio)
+    
     txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
     
     file_msg = btn.stop_recording(add_file, [chatbot, btn], [chatbot], queue=False).then(
         bot, chatbot, chatbot
-    )
+    ).then(generate_speech, chatbot, audio)
     
     #file_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
 
