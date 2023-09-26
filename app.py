@@ -94,7 +94,7 @@ def generate_speech(history):
     for sentence in text_to_generate:
         # generate speech by cloning a voice using default settings
         wav = tts.tts(text=sentence,
-                    #speaker_wav="/home/yoach/spaces/talkWithLLMs/examples/female.wav",
+                    speaker_wav="examples/female.wav",
                       speed=1.5,
                     language="en")
         
