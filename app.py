@@ -106,7 +106,8 @@ def generate_speech(history):
         # generate speech by cloning a voice using default settings
         wav = tts.tts(text=sentence,
                     speaker_wav="examples/female.wav",
-                    decoder_iterations=20,
+                    decoder_iterations=25,
+                    decoder_sampler="dpm++2m",
                     speed=1.2,
                     language="en")
         
