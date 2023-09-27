@@ -55,13 +55,13 @@ def transcribe(wav_path):
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
 
-def add_text(history, text, agree):
+def add_text(history, text):
     history = [] if history is None else history
     history = history + [(text, None)]
     return history, gr.update(value="", interactive=False)
 
 
-def add_file(history, file, agree):
+def add_file(history, file):
     history = [] if history is None else history
     text = transcribe(
         file
@@ -72,7 +72,7 @@ def add_file(history, file, agree):
 
 
 
-def bot(history, agree, system_prompt=""):    
+def bot(history, system_prompt=""):    
     history = [] if history is None else history
 
     if system_prompt == "":
@@ -127,18 +127,22 @@ with gr.Blocks(title=title) as demo:
 
     with gr.Row():
         txt = gr.Textbox(
-            scale=1,
+            scale=3,
             show_label=False,
             placeholder="Enter text and press enter, or speak to your microphone",
             container=False,
         )
-        btn = gr.Audio(source="microphone", type="filepath", scale=2)
+        txt_btn = gr.Button(value="Submit text",scale=1)
+        btn = gr.Audio(source="microphone", type="filepath", scale=4)
         
     with gr.Row():
         audio = gr.Audio(type="numpy", streaming=True, autoplay=True, label="Generated audio response", show_label=True)
 
     clear_btn = gr.ClearButton([chatbot, audio])
     
+    txt_msg = txt_btn.click(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
+        bot, chatbot, chatbot
+    ).then(generate_speech, chatbot, audio)
 
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
