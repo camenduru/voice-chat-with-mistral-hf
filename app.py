@@ -34,8 +34,6 @@ this demo is governed by the original [license](https://huggingface.co/spaces/ys
 css = """.toast-wrap { display: none !important } """
 
 
-os.environ["GRADIO_TEMP_DIR"] = "/home/yoach/spaces/tmp"
-
 system_message = "\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
 temperature = 0.9
 top_p = 0.6
@@ -129,7 +127,7 @@ def generate_speech(history, agree):
         for sentence in text_to_generate:
             # generate speech by cloning a voice using default settings
             wav = tts.tts(text=sentence,
-                        speaker_wav="/home/yoach/spaces/talkWithLLMs/examples/female.wav",
+                        speaker_wav="examples/female.wav",
                         decoder_iterations=20,
                         speed=1.2,
                         language="en")
@@ -152,7 +150,7 @@ with gr.Blocks(title=title) as demo:
     chatbot = gr.Chatbot(
         [],
         elem_id="chatbot",
-        avatar_images=('/home/yoach/spaces/talkWithLLMs/examples/lama.jpeg', '/home/yoach/spaces/talkWithLLMs/examples/lama2.jpeg'),
+        avatar_images=('examples/lama.jpeg', 'examples/lama2.jpeg'),
         bubble_full_width=False,
     )
 
