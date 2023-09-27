@@ -1,7 +1,7 @@
 ---
 title: Chat With Llama
-emoji: 🏃
-colorFrom: gray
+emoji: 🦙
+colorFrom: blue
 colorTo: green
 sdk: gradio
 sdk_version: 3.44.4
