@@ -124,10 +124,6 @@ def generate_speech(history):
                 print(f"Exit due to: Unrecoverable exception caused by language:{language} prompt:{prompt}", flush=True)
                 gr.Warning("Unhandled Exception encounter, please retry in a minute")
                 print("Cuda device-assert Runtime encountered need restart")
-                if not DEVICE_ASSERT_DETECTED:
-                    DEVICE_ASSERT_DETECTED=1
-                    DEVICE_ASSERT_PROMPT=prompt
-                    DEVICE_ASSERT_LANG=language
 
                 
                 # HF Space specific.. This error is unrecoverable need to restart space 
