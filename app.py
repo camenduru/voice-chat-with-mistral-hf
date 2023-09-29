@@ -10,7 +10,6 @@ import torch
 import nltk  # we'll use this to split into sentences
 nltk.download('punkt')
 import uuid
-import soundfile as SF
 
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
@@ -20,6 +19,7 @@ title = "Speak with Llama2 70B"
 DESCRIPTION = """# Speak with Llama2 70B"""
 css = """.toast-wrap { display: none !important } """
 
+from huggingface_hub import HfApi
 HF_TOKEN = os.environ.get("HF_TOKEN")
 # will use api to restart space on a unrecoverable error
 api = HfApi(token=HF_TOKEN)
