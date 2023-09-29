@@ -121,7 +121,7 @@ def generate_speech(history):
         except RuntimeError as e :
             if "device-side assert" in str(e):
                 # cannot do anything on cuda device side error, need tor estart
-                print(f"Exit due to: Unrecoverable exception caused by language:{language} prompt:{prompt}", flush=True)
+                print(f"Exit due to: Unrecoverable exception caused by prompt:{sentence}", flush=True)
                 gr.Warning("Unhandled Exception encounter, please retry in a minute")
                 print("Cuda device-assert Runtime encountered need restart")
 
