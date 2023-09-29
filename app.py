@@ -20,8 +20,11 @@ title = "Speak with Llama2 70B"
 DESCRIPTION = """# Speak with Llama2 70B"""
 css = """.toast-wrap { display: none !important } """
 
+HF_TOKEN = os.environ.get("HF_TOKEN")
+# will use api to restart space on a unrecoverable error
+api = HfApi(token=HF_TOKEN)
 
-os.environ["GRADIO_TEMP_DIR"] = "/home/yoach/spaces/tmp"
+repo_id = "ylacombe/voice-chat-with-lama"
 
 system_message = "\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
 temperature = 0.9
@@ -103,17 +106,35 @@ def generate_speech(history):
 
     
     for sentence in text_to_generate:
-        # generate speech by cloning a voice using default settings
-        wav = tts.tts(text=sentence,
-                    speaker_wav="examples/female.wav",
-                    decoder_iterations=25,
-                    decoder_sampler="dpm++2m",
-                    speed=1.2,
-                    language="en")
-        
-        yield (sampling_rate, np.array(wav)) #np.array(wav + silence))
+        try:   
 
-        
+            # generate speech by cloning a voice using default settings
+            wav = tts.tts(text=sentence,
+                        speaker_wav="examples/female.wav",
+                        decoder_iterations=25,
+                        decoder_sampler="dpm++2m",
+                        speed=1.2,
+                        language="en")
+            
+            yield (sampling_rate, np.array(wav)) #np.array(wav + silence))
+
+        except RuntimeError as e :
+            if "device-side assert" in str(e):
+                # cannot do anything on cuda device side error, need tor estart
+                print(f"Exit due to: Unrecoverable exception caused by language:{language} prompt:{prompt}", flush=True)
+                gr.Warning("Unhandled Exception encounter, please retry in a minute")
+                print("Cuda device-assert Runtime encountered need restart")
+                if not DEVICE_ASSERT_DETECTED:
+                    DEVICE_ASSERT_DETECTED=1
+                    DEVICE_ASSERT_PROMPT=prompt
+                    DEVICE_ASSERT_LANG=language
+
+                
+                # HF Space specific.. This error is unrecoverable need to restart space 
+                api.restart_space(repo_id=repo_id)
+            else:
+                print("RuntimeError: non device-side assert error:", str(e))
+                raise e
 
 with gr.Blocks(title=title) as demo:
     gr.Markdown(DESCRIPTION)
