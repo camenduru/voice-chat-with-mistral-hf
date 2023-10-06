@@ -122,7 +122,7 @@ def bot(history, system_prompt=""):
         system_prompt = system_message
         
     history[-1][1] = ""
-    for character in generate(system_prompt, history):
+    for character in generate(history[-1][0], history[:-1]):
         history[-1][1] = character
         yield history  
 
