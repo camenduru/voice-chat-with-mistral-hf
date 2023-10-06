@@ -14,9 +14,9 @@ import uuid
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
 
-title = "Speak with Llama2 70B"
+title = "Voice chat with Mistral 7B Instruct"
 
-DESCRIPTION = """# Speak with Llama2 70B"""
+DESCRIPTION = """# Voice chat with Mistral 7B Instruct"""
 css = """.toast-wrap { display: none !important } """
 
 from huggingface_hub import HfApi
@@ -26,7 +26,7 @@ api = HfApi(token=HF_TOKEN)
 
 repo_id = "ylacombe/voice-chat-with-lama"
 
-system_message = "\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
+system_message = "\nYou are a helpful, respectful and honest assistant. Your answers are short, ideally a few words long, if it is possible. Always answer as helpfully as possible, while being safe.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
 temperature = 0.9
 top_p = 0.6
 repetition_penalty = 1.2
@@ -41,9 +41,49 @@ from transformers import pipeline
 import numpy as np
 
 from gradio_client import Client
+from huggingface_hub import InferenceClient
+
 
 whisper_client = Client("https://sanchit-gandhi-whisper-large-v2.hf.space/")
-text_client = Client("https://ysharma-explore-llamav2-with-tgi.hf.space/")
+text_client = InferenceClient(
+    "mistralai/Mistral-7B-Instruct-v0.1"
+)
+
+
+def format_prompt(message, history):
+  prompt = "<s>"
+  for user_prompt, bot_response in history:
+    prompt += f"[INST] {user_prompt} [/INST]"
+    prompt += f" {bot_response}</s> "
+  prompt += f"[INST] {message} [/INST]"
+  return prompt
+
+def generate(
+    prompt, history, temperature=0.9, max_new_tokens=256, top_p=0.95, repetition_penalty=1.0,
+):
+    temperature = float(temperature)
+    if temperature < 1e-2:
+        temperature = 1e-2
+    top_p = float(top_p)
+
+    generate_kwargs = dict(
+        temperature=temperature,
+        max_new_tokens=max_new_tokens,
+        top_p=top_p,
+        repetition_penalty=repetition_penalty,
+        do_sample=True,
+        seed=42,
+    )
+
+    formatted_prompt = format_prompt(prompt, history)
+
+    stream = client.text_generation(formatted_prompt, **generate_kwargs, stream=True, details=True, return_full_text=False)
+    output = ""
+
+    for response in stream:
+        output += response.token.text
+        yield output
+    return output
 
 
 def transcribe(wav_path):
@@ -82,15 +122,7 @@ def bot(history, system_prompt=""):
         system_prompt = system_message
         
     history[-1][1] = ""
-    for character in text_client.submit(
-                    history,
-                    system_prompt,
-                    temperature,
-                    4096,
-                    temperature,
-                    repetition_penalty,
-                    api_name="/chat"
-    ):
+    for character in generate(system_prompt, history):
         history[-1][1] = character
         yield history  
 
@@ -177,12 +209,10 @@ with gr.Blocks(title=title) as demo:
 This Space demonstrates how to speak to a chatbot, based solely on open-source models.
 It relies on 3 models:
 1. [Whisper-large-v2](https://huggingface.co/spaces/sanchit-gandhi/whisper-large-v2) as an ASR model, to transcribe recorded audio to text. It is called through a [gradio client](https://www.gradio.app/docs/client).
-2. [Llama-2-70b-chat-hf](https://huggingface.co/meta-llama/Llama-2-70b-chat-hf) as the chat model, the actual chat model. It is also called through a [gradio client](https://www.gradio.app/docs/client).
+2. [Mistral-7b-instruct](https://huggingface.co/spaces/osanseviero/mistral-super-fast) as the chat model, the actual chat model. It is called from [huggingface_hub](https://huggingface.co/docs/huggingface_hub/guides/inference).
 3. [Coqui's XTTS](https://huggingface.co/spaces/coqui/xtts) as a TTS model, to generate the chatbot answers. This time, the model is hosted locally.
 
 Note:
-- As a derivate work of [Llama-2-70b-chat](https://huggingface.co/meta-llama/Llama-2-70b-chat-hf) by Meta,
-this demo is governed by the original [license](https://huggingface.co/spaces/ysharma/Explore_llamav2_with_TGI/blob/main/LICENSE.txt) and [acceptable use policy](https://huggingface.co/spaces/ysharma/Explore_llamav2_with_TGI/blob/main/USE_POLICY.md).
 - By using this demo you agree to the terms of the Coqui Public Model License at https://coqui.ai/cpml""")
 demo.queue()
 demo.launch(debug=True)
