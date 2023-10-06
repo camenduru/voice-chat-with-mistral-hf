@@ -194,6 +194,8 @@ with gr.Blocks(title=title) as demo:
         bot, chatbot, chatbot
     ).then(generate_speech, chatbot, audio)
 
+    txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
+
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
     ).then(generate_speech, chatbot, audio)
