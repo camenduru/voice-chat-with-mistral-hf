@@ -77,7 +77,7 @@ def generate(
 
     formatted_prompt = format_prompt(prompt, history)
 
-    stream = client.text_generation(formatted_prompt, **generate_kwargs, stream=True, details=True, return_full_text=False)
+    stream = text_client.text_generation(formatted_prompt, **generate_kwargs, stream=True, details=True, return_full_text=False)
     output = ""
 
     for response in stream:
