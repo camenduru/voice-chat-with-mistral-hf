@@ -1,6 +1,6 @@
 ---
-title: Voice Chat With Llama
-emoji: 🦙
+title: Voice Chat With Mistral 7B
+emoji: 🌪️
 colorFrom: blue
 colorTo: red
 sdk: gradio
