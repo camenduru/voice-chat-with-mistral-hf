@@ -196,16 +196,6 @@ with gr.Blocks(title=title) as demo:
     file_msg = btn.stop_recording(add_file, [chatbot, btn], [chatbot], queue=False).then(
         bot, chatbot, chatbot
     ).then(generate_speech, chatbot, audio)
-    
 
-    gr.Markdown("""
-This Space demonstrates how to speak to a chatbot, based solely on open-source models.
-It relies on 3 models:
-1. [Whisper-large-v2](https://huggingface.co/spaces/sanchit-gandhi/whisper-large-v2) as an ASR model, to transcribe recorded audio to text. It is called through a [gradio client](https://www.gradio.app/docs/client).
-2. [Mistral-7b-instruct](https://huggingface.co/spaces/osanseviero/mistral-super-fast) as the chat model, the actual chat model. It is called from [huggingface_hub](https://huggingface.co/docs/huggingface_hub/guides/inference).
-3. [Coqui's XTTS](https://huggingface.co/spaces/coqui/xtts) as a TTS model, to generate the chatbot answers. This time, the model is hosted locally.
-
-Note:
-- By using this demo you agree to the terms of the Coqui Public Model License at https://coqui.ai/cpml""")
 demo.queue()
 demo.launch(debug=True, share=True)
