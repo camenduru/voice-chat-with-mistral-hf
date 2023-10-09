@@ -13,19 +13,14 @@ import uuid
 
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v1", gpu=True)
-
 title = "Voice chat with Mistral 7B Instruct"
-
-DESCRIPTION = """# Voice chat with Mistral 7B Instruct"""
 css = """.toast-wrap { display: none !important } """
-
 repo_id = "ylacombe/voice-chat-with-lama"
 
 system_message = "\nYou are a helpful, respectful and honest assistant. Your answers are short, ideally a few words long, if it is possible. Always answer as helpfully as possible, while being safe.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
 temperature = 0.9
 top_p = 0.6
 repetition_penalty = 1.2
-
 
 import gradio as gr
 import os
@@ -38,12 +33,8 @@ import numpy as np
 from gradio_client import Client
 from huggingface_hub import InferenceClient
 
-
 whisper_client = Client("https://sanchit-gandhi-whisper-large-v2.hf.space/")
-text_client = InferenceClient(
-    "mistralai/Mistral-7B-Instruct-v0.1"
-)
-
+text_client = InferenceClient("mistralai/Mistral-7B-Instruct-v0.1")
 
 def format_prompt(message, history):
   prompt = "<s>"
@@ -80,35 +71,25 @@ def generate(
         yield output
     return output
 
-
 def transcribe(wav_path):
-    
     return whisper_client.predict(
 				wav_path,	# str (filepath or URL to file) in 'inputs' Audio component
 				"transcribe",	# str in 'Task' Radio component
 				api_name="/predict"
 )
-    
-
-# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
-
 
 def add_text(history, text):
     history = [] if history is None else history
     history = history + [(text, None)]
     return history, gr.update(value="", interactive=False)
 
-
 def add_file(history, file):
     history = [] if history is None else history
     text = transcribe(
         file
     )
-    
     history = history + [(text, None)]
     return history
-
-
 
 def bot(history, system_prompt=""):    
     history = [] if history is None else history
@@ -121,7 +102,6 @@ def bot(history, system_prompt=""):
         history[-1][1] = character
         yield history  
 
-    
 def generate_speech(history):
     text_to_generate = history[-1][1]
     text_to_generate = text_to_generate.replace("\n", " ").strip()
@@ -131,7 +111,6 @@ def generate_speech(history):
     sampling_rate = tts.synthesizer.tts_config.audio["sample_rate"]
     silence = [0] * int(0.25 * sampling_rate)
 
-    
     for sentence in text_to_generate:
         try:   
 
@@ -155,10 +134,7 @@ def generate_speech(history):
                 print("RuntimeError: non device-side assert error:", str(e))
                 raise e
 
-with gr.Blocks(title=title) as demo:
-    gr.Markdown(DESCRIPTION)
-    
-    
+with gr.Blocks(title=title) as demo:    
     chatbot = gr.Chatbot(
         [],
         elem_id="chatbot",
