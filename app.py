@@ -19,11 +19,6 @@ title = "Voice chat with Mistral 7B Instruct"
 DESCRIPTION = """# Voice chat with Mistral 7B Instruct"""
 css = """.toast-wrap { display: none !important } """
 
-from huggingface_hub import HfApi
-HF_TOKEN = os.environ.get("HF_TOKEN")
-# will use api to restart space on a unrecoverable error
-api = HfApi(token=HF_TOKEN)
-
 repo_id = "ylacombe/voice-chat-with-lama"
 
 system_message = "\nYou are a helpful, respectful and honest assistant. Your answers are short, ideally a few words long, if it is possible. Always answer as helpfully as possible, while being safe.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."
@@ -156,10 +151,6 @@ def generate_speech(history):
                 print(f"Exit due to: Unrecoverable exception caused by prompt:{sentence}", flush=True)
                 gr.Warning("Unhandled Exception encounter, please retry in a minute")
                 print("Cuda device-assert Runtime encountered need restart")
-
-                
-                # HF Space specific.. This error is unrecoverable need to restart space 
-                api.restart_space(repo_id=repo_id)
             else:
                 print("RuntimeError: non device-side assert error:", str(e))
                 raise e
@@ -217,4 +208,4 @@ It relies on 3 models:
 Note:
 - By using this demo you agree to the terms of the Coqui Public Model License at https://coqui.ai/cpml""")
 demo.queue()
-demo.launch(debug=True)
+demo.launch(debug=True, share=True)
